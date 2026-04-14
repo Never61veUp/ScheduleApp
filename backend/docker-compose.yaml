@@ -1,23 +1,24 @@
-﻿version: '3.9'
+﻿version: "3.9"
 
 services:
   scheduleapp.api:
-    image: scheduleapp.api
     build:
       context: .
       dockerfile: ScheduleApp.API/Dockerfile
-    ports:
-      - "8181:8181"
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
+      ASPNETCORE_URLS: "http://0.0.0.0:5000"
+    expose:
+      - "5000"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.reviewanalyzer.rule=Host(`api.schedule.mixdev.me`)
-      - traefik.http.routers.reviewanalyzer.entrypoints=https
-      - traefik.http.routers.reviewanalyzer.tls.certresolver=letsencrypt
+      - traefik.http.routers.api.rule=Host(`api.schedule.mixdev.me`)
+      - traefik.http.routers.api.entrypoints=https
+      - traefik.http.routers.api.tls.certresolver=letsencrypt
+      - traefik.http.services.api.loadbalancer.server.port=5000
 
   client:
     build:
@@ -25,10 +26,11 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - scheduleapp.api
-    ports:
-      - "5176:80"
+    expose:
+      - "80"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.reviewanalyzer.rule=Host(`schedule.mixdev.me`)
-      - traefik.http.routers.reviewanalyzer.entrypoints=https
-      - traefik.http.routers.reviewanalyzer.tls.certresolver=letsencrypt
+      - traefik.http.routers.client.rule=Host(`schedule.mixdev.me`)
+      - traefik.http.routers.client.entrypoints=https
+      - traefik.http.routers.client.tls.certresolver=letsencrypt
+      - traefik.http.services.client.loadbalancer.server.port=80
