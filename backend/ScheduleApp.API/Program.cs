@@ -66,8 +66,6 @@ app.MapScalarApiReference(options =>
     options.AddServer("https://api.schedule.mixdev.me/");
 });
 
-app.UseHttpsRedirection();
-
 app.UseCors("client-dev");
 
 app.UseAuthentication();
