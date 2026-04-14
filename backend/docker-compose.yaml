@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: ScheduleApp.API/Dockerfile
     ports:
-      - "8080:8080"
+      - "8181:8181"
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
