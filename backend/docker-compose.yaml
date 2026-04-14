@@ -11,8 +11,6 @@ services:
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
       ASPNETCORE_URLS: "http://0.0.0.0:8181"
-    expose:
-      - "8181"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.schedule.mixdev.me`)"
