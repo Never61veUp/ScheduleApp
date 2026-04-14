@@ -1,3 +1,5 @@
+const API_URL = 'https://api.schedule.mixdev.me'
+
 export type TelegramUser = {
   id: number | string
   username?: string | null
@@ -6,7 +8,7 @@ export type TelegramUser = {
 }
 
 export async function telegramLogin(initData: string): Promise<{ token: string }> {
-  const res = await fetch('/api/auth/telegram', {
+  const res = await fetch(`${API_URL}/api/auth/telegram`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ initData })
@@ -17,7 +19,7 @@ export async function telegramLogin(initData: string): Promise<{ token: string }
 }
 
 export async function getMe(token: string): Promise<TelegramUser> {
-  const res = await fetch('/api/me', {
+  const res = await fetch(`${API_URL}/api/me`, {
     headers: { authorization: `Bearer ${token}` }
   })
   if (!res.ok) throw new Error(`Me failed: ${res.status}`)

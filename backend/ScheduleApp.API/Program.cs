@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("client-dev", policy =>
         policy
-            .WithOrigins("https://localhost:5176", "http://localhost:5176")
+            .WithOrigins("https://localhost:5176", "http://localhost:5176", "https://schedule.mixdev.me")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
