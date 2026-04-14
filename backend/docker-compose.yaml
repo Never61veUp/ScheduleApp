@@ -10,7 +10,7 @@ services:
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
-      ASPNETCORE_URLS: "https://0.0.0.0:8181"
+      ASPNETCORE_URLS: "http://0.0.0.0:8181"
     expose:
       - "8181"
     labels:
