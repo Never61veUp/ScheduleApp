@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: ScheduleApp.API/Dockerfile
     networks:
-      - osccowgkgkddwwkgcg448ggc
+      - ww8og80cwkcck4ssgw8gws4o
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
