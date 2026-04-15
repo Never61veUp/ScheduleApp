@@ -12,13 +12,13 @@ services:
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
-      ASPNETCORE_URLS: "http://0.0.0.0:8181"
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.schedule.mixdev.me`)"
       - "traefik.http.routers.api.entrypoints=https"
       - "traefik.http.routers.api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api.loadbalancer.server.port=8181"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
 
   client:
     build:
