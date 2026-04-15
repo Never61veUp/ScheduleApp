@@ -25,7 +25,7 @@ services:
       context: ../miniapp
       dockerfile: Dockerfile
     depends_on:
-      - scheduleapp.api
+      - scheduleapp-api
     expose:
       - "80"
     labels:
