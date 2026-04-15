@@ -72,5 +72,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapGet("/", () => Results.Ok("OK"));
 app.Run();
