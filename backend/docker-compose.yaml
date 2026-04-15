@@ -1,7 +1,8 @@
 ﻿version: "3.9"
 
 services:
-  scheduleapp.api:
+  scheduleapp-api:
+    container_name: scheduleapp-api
     build:
       context: .
       dockerfile: ScheduleApp.API/Dockerfile
