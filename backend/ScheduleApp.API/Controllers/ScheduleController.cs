@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using ScheduleApp.API.Contracts;
 using ScheduleApp.Application.Extension;
 using ScheduleApp.Application.Services;
@@ -18,20 +19,20 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] CreateScheduleRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request)
     {
-        var result = _service.CreateSchedule(request);
+        var result = await _service.CreateSchedule(request);
 
         if (result.IsFailure)
             return BadRequest(result.Error);
 
-        return Ok(result.Value.ToResponse());
+        return Ok();
     }
 
-    [HttpGet]
-    public IActionResult Get()
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get([Required] Guid id)
     {
-        var result = _service.GetSchedule();
+        var result = await _service.GetSchedule(id);
 
         if (result.IsFailure)
             return NotFound(result.Error);

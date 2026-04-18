@@ -9,6 +9,7 @@
     <ItemGroup>
       <ProjectReference Include="..\ScheduleApp.Contracts\ScheduleApp.Contracts.csproj" />
       <ProjectReference Include="..\ScheduleApp.Core\ScheduleApp.Core.csproj" />
+      <ProjectReference Include="..\ScheduleApp.PostgreSql\ScheduleApp.PostgreSql.csproj" />
     </ItemGroup>
 
 </Project>

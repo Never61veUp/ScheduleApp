@@ -2,14 +2,22 @@
 
 namespace ScheduleApp.Core.Model.Scheduling;
 
-public class DaySchedule
+public class DaySchedule : Entity<Guid>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly Start { get; private set; }
     public TimeOnly End { get; private set; }
     public TimeSpan SlotDuration { get; private set; }
 
-    public IReadOnlyCollection<Slot> DaySlots { get; private set; } = [];
+    public bool IsDayOff
+    {
+        get => field;
+        private set;
+    }
+
+    private List<Slot> _daySlots = [];
+
+    public IReadOnlyCollection<Slot> DaySlots => _daySlots;
 
     private DaySchedule(DateOnly date, TimeOnly start, TimeOnly end, TimeSpan slotDuration)
     {
@@ -17,8 +25,11 @@ public class DaySchedule
         Start = start;
         End = end;
         SlotDuration = slotDuration;
+        IsDayOff = DaySlots.Count == 0;
     }
 
+    private DaySchedule() { }
+    
     public static Result<DaySchedule> Create(DateOnly date, TimeOnly start, TimeOnly end, TimeSpan slotDuration)
     {
         var daySchedule = new DaySchedule(date, start, end, slotDuration);
@@ -32,7 +43,7 @@ public class DaySchedule
     {
         if (End <= Start)
         {
-            DaySlots = [];
+            _daySlots = [];
             return Result.Success();
         }
             
@@ -46,7 +57,7 @@ public class DaySchedule
             currentTime = currentTime.Add(SlotDuration);
         }
     
-        DaySlots = slots;
+        _daySlots = slots;
             
         return Result.Success();
     }

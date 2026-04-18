@@ -2,7 +2,7 @@
 
 namespace ScheduleApp.Core.Model.Scheduling;
 
-public class Slot
+public class Slot : Entity<Guid>
 {
     public TimeOnly Start { get; set; }
     public TimeOnly End { get; set; }

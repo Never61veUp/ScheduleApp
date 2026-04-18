@@ -4,7 +4,10 @@ using Scalar.AspNetCore;
 using ScheduleApp.API.Security;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using ScheduleApp.Application.Services;
+using ScheduleApp.PostgreSql;
+using ScheduleApp.PostgreSql.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 using var tempProvider = builder.Services.BuildServiceProvider();
@@ -57,7 +60,8 @@ builder.Configuration.AddEnvironmentVariables();
 }
 
 // Add services to the container.
-builder.Services.AddSingleton<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
@@ -83,6 +87,8 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+
+
 
 builder.Services
     .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
@@ -112,7 +118,26 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<TelegramWebAppValidator>();
 builder.Services.AddSingleton<JwtTokenService>();
 
+var connectionString = builder.Configuration.GetConnectionString("Postgres");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+});
+
+
 var app = builder.Build();
+
+if (Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true")
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
+}
+
+
 
 // Configure the HTTP request pipeline.
 app.UseCors(app.Environment.IsDevelopment() ? "cors-dev" : "cors-prod");

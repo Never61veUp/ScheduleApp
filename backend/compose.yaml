@@ -6,12 +6,15 @@
       dockerfile: ScheduleApp.API/Dockerfile
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
     environment:
       DP_KEYS_FOLDER: "/keys"
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=scheduledb;Username=postgres;Password=postgres"
     volumes:
       - scheduleapp-keys:/keys
   client:
@@ -22,6 +25,18 @@
       - scheduleapp.api
     ports:
       - "5173:80"
+    
+  postgres:
+    image: postgres:18.3
+    container_name: postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "scheduledb"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   scheduleapp-keys:

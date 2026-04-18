@@ -1,59 +1,64 @@
 ﻿using CSharpFunctionalExtensions;
 using ScheduleApp.Contracts.Contracts;
 using ScheduleApp.Core.Model.Scheduling;
+using ScheduleApp.PostgreSql.Repositories;
 
 namespace ScheduleApp.Application.Services;
 
 public interface IScheduleService
 {
-    Result<WeeklySchedule> CreateSchedule(CreateScheduleRequest request);
-    Result<WeeklySchedule> GetSchedule();
+    Task<Result> CreateSchedule(CreateScheduleRequest request);
+    Task<Result<WeeklySchedule>> GetSchedule(Guid id);
 }
 
 public class ScheduleService : IScheduleService
 {
-    private Dictionary<int, WeeklySchedule> _storage = new Dictionary<int, WeeklySchedule>();
-    public Result<WeeklySchedule> CreateSchedule(CreateScheduleRequest request)
+    private readonly IScheduleRepository _repository;
+
+    public ScheduleService(IScheduleRepository repository)
     {
+        _repository = repository;
+    }
+    public async Task<Result> CreateSchedule(CreateScheduleRequest request)
+    {
+        var overrides = request.Overrides
+            .Select(x => new DayOverride
+            {
+                DayOfWeek = x.DayOfWeek,
+                Start = x.Start,
+                End = x.End,
+                SlotDuration = x.SlotDurationMinutes is null
+                    ? null
+                    : TimeSpan.FromMinutes(x.SlotDurationMinutes.Value),
+                IsDayOff = x.IsDayOff
+            })
+            .ToList();
+
         var result = WeeklySchedule.Create(
             request.StartDate,
             request.Days,
-            date =>
-            {
-                var overrideDay = request.Overrides
-                    .FirstOrDefault(o => o.DayOfWeek == date.DayOfWeek);
-                
-                if (overrideDay?.IsDayOff == true)
-                    return (TimeOnly.MinValue, TimeOnly.MinValue, TimeSpan.Zero);
+            overrides,
+            date => (
+                request.Default.Start,
+                request.Default.End,
+                TimeSpan.FromMinutes(request.Default.SlotDurationMinutes)
+            ));
 
-                var config = overrideDay is null
-                    ? request.Default
-                    : new DayScheduleConfig(
-                        overrideDay.Start ?? request.Default.Start,
-                        overrideDay.End ?? request.Default.End,
-                        overrideDay.SlotDurationMinutes ?? request.Default.SlotDurationMinutes
-                    );
+        if (result.IsFailure)
+            return Result.Failure<WeeklySchedule>(result.Error);
 
-                return (
-                    config.Start,
-                    config.End,
-                    TimeSpan.FromMinutes(config.SlotDurationMinutes)
-                );
-            });
-        _storage.Add(1, result.Value);
-        return result;
+        var saveResult = await _repository.AddAsync(result.Value);
+        if(saveResult.IsFailure)
+            return Result.Failure(saveResult.Error);
+
+        return Result.Success();
     }
 
-    public Result<WeeklySchedule> GetSchedule()
+    public async Task<Result<WeeklySchedule>> GetSchedule(Guid id)
     {
-        if (!_storage.TryGetValue(1, out var schedule))
-            return Result.Failure<WeeklySchedule>("Schedule not created");
-
-        return Result.Success(schedule);
-    }
-
-    public void Clear()
-    {
-        _storage.Clear();
+        var result = await _repository.GetAsync(id);
+        if(result is null)
+            return Result.Failure<WeeklySchedule>("Schedule not found");
+        return Result.Success(result);
     }
 }
