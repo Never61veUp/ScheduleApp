@@ -7,18 +7,20 @@ services:
       context: .
       dockerfile: ScheduleApp.API/Dockerfile
     environment:
+      DP_KEYS_FOLDER: "/keys"
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
       ASPNETCORE_URLS: "http://0.0.0.0:8080"
+    volumes:
+      - scheduleapp-keys:/keys
     labels:
       - traefik.enable=true
       - traefik.http.routers.scheduleapp-api.rule=Host(`api.schedule.mixdev.me`)
       - traefik.http.routers.scheduleapp-api.entrypoints=https
       - traefik.http.routers.scheduleapp-api.tls.certresolver=letsencrypt
       - traefik.http.services.scheduleapp-api.loadbalancer.server.port=8080
-      - 
 
   client:
     build:
@@ -34,3 +36,6 @@ services:
       - traefik.http.routers.client.entrypoints=https
       - traefik.http.routers.client.tls.certresolver=letsencrypt
       - traefik.http.services.client.loadbalancer.server.port=80
+
+volumes:
+  scheduleapp-keys:
