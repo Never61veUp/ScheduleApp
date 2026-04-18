@@ -110,11 +110,7 @@ builder.Services.AddSingleton<JwtTokenService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+// Expose OpenAPI in all environments (used by Scalar UI below).
 app.MapOpenApi();
 
 app.MapScalarApiReference(options =>
@@ -124,6 +120,8 @@ app.MapScalarApiReference(options =>
     options.AddServer("https://api.schedule.mixdev.me/");
 });
 app.UseHttpsRedirection(); 
+
+app.UseRouting();
 app.UseCors("client-dev");
 
 app.UseAuthentication();
