@@ -20,4 +20,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ScheduleApp.Application\ScheduleApp.Application.csproj" />
+    </ItemGroup>
+
 </Project>

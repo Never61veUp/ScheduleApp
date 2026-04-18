@@ -4,6 +4,7 @@ using Scalar.AspNetCore;
 using ScheduleApp.API.Security;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
+using ScheduleApp.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 using var tempProvider = builder.Services.BuildServiceProvider();
@@ -56,25 +57,29 @@ builder.Configuration.AddEnvironmentVariables();
 }
 
 // Add services to the container.
+builder.Services.AddSingleton<IScheduleService, ScheduleService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("client-dev", policy =>
+    options.AddPolicy("cors-dev", policy =>
         policy
-            .WithOrigins("https://localhost:5176", "http://localhost:5176", "https://schedule.mixdev.me")
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod());
-});
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("client-prod", policy =>
+    options.AddPolicy("cors-prod", policy =>
         policy
-            .WithOrigins("https://schedule.mixdev.me")
+            .WithOrigins("http://localhost:8080", "https://schedule.mixdev.me")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -110,10 +115,7 @@ builder.Services.AddSingleton<JwtTokenService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.UseCors(app.Environment.IsDevelopment() ? "cors-dev" : "cors-prod");
 
 app.MapOpenApi();
 
@@ -121,7 +123,7 @@ app.MapScalarApiReference(options =>
 {
     options.Title = "API Documentation";
     options.Theme = ScalarTheme.Default;
-    options.AddServer("https://api.schedule.mixdev.me/");
+    options.AddServer(app.Environment.IsDevelopment() ? "http://localhost:8080" : "https://api.scheduleschedule.mixdev.me/");
 });
 app.UseHttpsRedirection(); 
 app.UseCors("client-dev");
