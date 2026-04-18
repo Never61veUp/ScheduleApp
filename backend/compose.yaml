@@ -7,10 +7,13 @@
     ports:
       - "8080:8080"
     environment:
+      DP_KEYS_FOLDER: "/keys"
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
+    volumes:
+      - scheduleapp-keys:/keys
   client:
     build:
       context: ../miniapp
@@ -19,3 +22,6 @@
       - scheduleapp.api
     ports:
       - "5173:80"
+
+volumes:
+  scheduleapp-keys:
