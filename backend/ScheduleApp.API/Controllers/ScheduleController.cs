@@ -39,4 +39,14 @@ public class ScheduleController : ControllerBase
 
         return Ok(result.Value.ToResponse());
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> ChangeStatus(Guid id)
+    {
+        var result = await _service.ChangeStatus(id);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+            
+        return Ok();
+    }
 }

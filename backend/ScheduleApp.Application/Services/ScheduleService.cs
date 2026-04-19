@@ -9,6 +9,7 @@ public interface IScheduleService
 {
     Task<Result> CreateSchedule(CreateScheduleRequest request);
     Task<Result<WeeklySchedule>> GetSchedule(Guid id);
+    Task<Result> ChangeStatus(Guid id);
 }
 
 public class ScheduleService : IScheduleService
@@ -60,5 +61,20 @@ public class ScheduleService : IScheduleService
         if(result is null)
             return Result.Failure<WeeklySchedule>("Schedule not found");
         return Result.Success(result);
+    }
+    
+    public async Task<Result> ChangeStatus(Guid id)
+    {
+        var slotResult = await _repository.GetSlotAsync(id);
+        if (slotResult.IsFailure)
+            return Result.Failure(slotResult.Error);
+
+        slotResult.Value.ChangeStatus();
+
+        var updateResult = await _repository.UpdateAsync(slotResult.Value);
+        if (updateResult.IsFailure)
+            return Result.Failure(updateResult.Error);
+
+        return Result.Success();
     }
 }
