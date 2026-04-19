@@ -15,6 +15,7 @@ services:
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
       ASPNETCORE_URLS: "http://0.0.0.0:8080"
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     volumes:
       - scheduleapp-keys:/keys
     labels:
