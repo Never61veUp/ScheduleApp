@@ -32,4 +32,14 @@ public class Slot : Entity<Guid>
         Status = Status.Available;
         return Result.Success();
     }
+    
+    public Result ChangeStatus()
+    {
+        if (Status == Status.Booked)
+            return Result.Failure("Cannot enable a booked slot");
+        
+        Status = Status == Status.Unavailable ? Status.Available : Status.Unavailable;
+        
+        return Result.Success();
+    }
 }

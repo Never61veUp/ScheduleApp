@@ -30,10 +30,51 @@ public class ScheduleRepository : IScheduleRepository
             return Result.Failure("Failed to add schedule.");
         return Result.Success();
     }
+
+    public async Task<Result> UpdateAsync(WeeklySchedule schedule)
+    {
+        _context.Update(schedule);
+        
+        if(await _context.SaveChangesAsync() < 1)
+            return Result.Failure("Failed to update schedule.");
+        return Result.Success();
+    }
+    
+    public async Task<Result<DaySchedule>> GetDayScheduleAsync(Guid id)
+    {
+        var daySchedule = await _context.DaySchedules
+            .Include(x => x.DaySlots)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        
+        if (daySchedule is null)
+            return Result.Failure<DaySchedule>("Day schedule not found.");
+        
+        return Result.Success(daySchedule);
+    }
+    
+    public async Task<Result<Slot>> GetSlotAsync(Guid id)
+    {
+        var slot = await _context.Slots
+            .FirstOrDefaultAsync(x => x.Id == id);
+        return slot ?? Result.Failure<Slot>("Slot not found.");
+    }
+    
+    public async Task<Result> UpdateAsync(Slot slot)
+    {
+        _context.Update(slot);
+        
+        if(await _context.SaveChangesAsync() < 1)
+            return Result.Failure("Failed to update slot.");
+        return Result.Success();
+    }
 }
 
 public interface IScheduleRepository
 {
     Task<WeeklySchedule?> GetAsync(Guid id);
     Task<Result> AddAsync(WeeklySchedule schedule);
+    Task<Result> UpdateAsync(WeeklySchedule schedule);
+    Task<Result<DaySchedule>> GetDayScheduleAsync(Guid id);
+    Task<Result<Slot>> GetSlotAsync(Guid id);
+    Task<Result> UpdateAsync(Slot slot);
 }

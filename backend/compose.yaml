@@ -15,6 +15,7 @@
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
       ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=scheduledb;Username=postgres;Password=postgres"
+      RUN_MIGRATIONS: "true"
     volumes:
       - scheduleapp-keys:/keys
   client:
@@ -36,7 +37,8 @@
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   scheduleapp-keys:
+  postgres_data:
