@@ -4,7 +4,10 @@ using Scalar.AspNetCore;
 using ScheduleApp.API.Security;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using ScheduleApp.Application.Services;
+using ScheduleApp.PostgreSql;
+using ScheduleApp.PostgreSql.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 using var tempProvider = builder.Services.BuildServiceProvider();
@@ -57,28 +60,35 @@ builder.Configuration.AddEnvironmentVariables();
 }
 
 // Add services to the container.
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("client-dev", policy =>
+    options.AddPolicy("cors-dev", policy =>
         policy
-            .WithOrigins("https://localhost:5176", "http://localhost:5176", "https://schedule.mixdev.me")
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+
+    options.AddPolicy("cors-prod", policy =>
+        policy
+            .WithOrigins("http://localhost:8080", "https://schedule.mixdev.me")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("client-prod", policy =>
-        policy
-            .WithOrigins("https://schedule.mixdev.me")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-});
+
 
 builder.Services
     .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
@@ -99,35 +109,48 @@ builder.Services
             ValidIssuer = issuer,
             ValidAudience = audience,
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(key)),
-            RoleClaimType = ClaimTypes.Role,
+                System.Text.Encoding.UTF8.GetBytes(key))
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("master", policy => policy.RequireRole("master"));
-    options.AddPolicy("client", policy => policy.RequireRole("client"));
-});
+builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<TelegramWebAppValidator>();
 builder.Services.AddSingleton<JwtTokenService>();
 
+var connectionString = builder.Configuration.GetConnectionString("Postgres");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+});
+
+
 var app = builder.Build();
 
+if (Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true")
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
+}
+
+
+
 // Configure the HTTP request pipeline.
-// Expose OpenAPI in all environments (used by Scalar UI below).
+app.UseCors(app.Environment.IsDevelopment() ? "cors-dev" : "cors-prod");
+
 app.MapOpenApi();
 
 app.MapScalarApiReference(options =>
 {
     options.Title = "API Documentation";
     options.Theme = ScalarTheme.Default;
-    options.AddServer("https://api.schedule.mixdev.me/");
+    options.AddServer(app.Environment.IsDevelopment() ? "http://localhost:8080" : "https://api.scheduleschedule.mixdev.me/");
 });
 app.UseHttpsRedirection(); 
-
-app.UseRouting();
 app.UseCors("client-dev");
 
 app.UseAuthentication();
