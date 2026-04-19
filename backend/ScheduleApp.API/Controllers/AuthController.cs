@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniApp.Server.Security;
 using ScheduleApp.API.Security;
@@ -58,13 +59,15 @@ public class AuthController : ControllerBase
         var username = User.FindFirst("tg:username")?.Value;
         var firstName = User.FindFirst("tg:first_name")?.Value;
         var lastName = User.FindFirst("tg:last_name")?.Value;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
         return Ok(new
         {
             id,
             username,
             firstName,
-            lastName
+            lastName,
+            role
         });
     }
 }
