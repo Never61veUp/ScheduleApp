@@ -41,7 +41,7 @@ public class MasterRepository : IMasterRepository
     {
         var m = new Master(e.TelegramId);
 
-        if (!string.IsNullOrWhiteSpace(e.LocationName) && !string.IsNullOrWhiteSpace(e.LocationUrl))
+        if (!string.IsNullOrWhiteSpace(e.LocationName))
             m.UpdateLocation(e.LocationName, e.LocationUrl);
 
         m.UpdateProfile(e.AvatarUrl, e.Description);
