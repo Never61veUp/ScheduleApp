@@ -4,6 +4,7 @@ using Scalar.AspNetCore;
 using ScheduleApp.API.Security;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 using var tempProvider = builder.Services.BuildServiceProvider();
@@ -98,11 +99,16 @@ builder.Services
             ValidIssuer = issuer,
             ValidAudience = audience,
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(key))
+                System.Text.Encoding.UTF8.GetBytes(key)),
+            RoleClaimType = ClaimTypes.Role,
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("master", policy => policy.RequireRole("master"));
+    options.AddPolicy("client", policy => policy.RequireRole("client"));
+});
 
 builder.Services.AddSingleton<TelegramWebAppValidator>();
 builder.Services.AddSingleton<JwtTokenService>();
@@ -110,11 +116,7 @@ builder.Services.AddSingleton<JwtTokenService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+// Expose OpenAPI in all environments (used by Scalar UI below).
 app.MapOpenApi();
 
 app.MapScalarApiReference(options =>
@@ -124,6 +126,8 @@ app.MapScalarApiReference(options =>
     options.AddServer("https://api.schedule.mixdev.me/");
 });
 app.UseHttpsRedirection(); 
+
+app.UseRouting();
 app.UseCors("client-dev");
 
 app.UseAuthentication();

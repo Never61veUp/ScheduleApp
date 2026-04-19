@@ -16,6 +16,8 @@ public sealed class JwtTokenService
         if (string.IsNullOrWhiteSpace(key))
             throw new InvalidOperationException("Missing JWT signing key. Set environment variable JWT_KEY.");
 
+        var role = ResolveRole(user, config);
+
         var creds = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
             SecurityAlgorithms.HmacSha256);
@@ -23,6 +25,7 @@ public sealed class JwtTokenService
         var claims = new List<Claim>
         {
             new("tg:id", user.Id.ToString()),
+            new(ClaimTypes.Role, role),
         };
 
         if (!string.IsNullOrWhiteSpace(user.Username)) claims.Add(new("tg:username", user.Username));
@@ -38,6 +41,30 @@ public sealed class JwtTokenService
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private static string ResolveRole(TelegramWebAppUser user, IConfiguration config)
+    {
+        // Default role
+        const string clientRole = "client";
+        const string masterRole = "master";
+
+        // Comma/space-separated list of Telegram user IDs that should be masters.
+        // Example: MASTER_TG_IDS=12345,67890
+        var masters = config["MASTER_TG_IDS"];
+        if (string.IsNullOrWhiteSpace(masters))
+            return clientRole;
+
+        var parts = masters
+            .Split(new[] { ',', ' ', ';', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var p in parts)
+        {
+            if (long.TryParse(p, out var id) && id == user.Id)
+                return masterRole;
+        }
+
+        return clientRole;
     }
 }
 
