@@ -95,9 +95,7 @@ public class AuthController : ControllerBase
         var firstName = User.FindFirst("tg:first_name")?.Value;
         var lastName = User.FindFirst("tg:last_name")?.Value;
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if(role != "Master")
-            return Forbid();
+        
         if(!long.TryParse(id, out var telegramId))
             return BadRequest("Invalid Telegram ID in token.");
         var master = await _masterService.GetByTelegramId(telegramId);
