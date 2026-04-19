@@ -6,6 +6,9 @@ export type TelegramUser = {
   firstName?: string | null
   lastName?: string | null
     role?: string | null
+    masterAvatarUrl: string | null
+    masterDescription: string | null
+    masterLocation: string | null
 }
 
 export async function telegramLogin(initData: string): Promise<{ token: string }> {

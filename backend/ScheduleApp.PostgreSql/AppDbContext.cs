@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScheduleApp.Core.Model.Scheduling;
 using ScheduleApp.PostgreSql.Configuration;
+using ScheduleApp.PostgreSql.Model;
 
 namespace ScheduleApp.PostgreSql;
 
@@ -10,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<DaySchedule> DaySchedules => Set<DaySchedule>();
     public DbSet<Slot> Slots => Set<Slot>();
     public DbSet<DayOverride> Overrides => Set<DayOverride>();
+    public DbSet<MasterEntity> MasterEntities => Set<MasterEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

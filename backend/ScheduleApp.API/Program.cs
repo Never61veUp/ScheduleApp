@@ -62,6 +62,8 @@ builder.Configuration.AddEnvironmentVariables();
 // Add services to the container.
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+builder.Services.AddScoped<IMasterRepository, MasterRepository>();
+builder.Services.AddScoped<IMasterService, MasterService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
